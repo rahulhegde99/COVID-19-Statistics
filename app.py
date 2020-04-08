@@ -1,10 +1,82 @@
+#scrape.py
+import requests
+import re 
+import os.path
+from os import path
+import bs4
+from bs4 import BeautifulSoup
+from datetime import datetime
+
+
+def getContents():
+	url = "https://www.mohfw.gov.in/"
+	r = requests.get(url)	
+	txt = ""
+	if r.status_code == 200:
+		txt = r.text
+		return txt
+
+
+def scrape_now():
+	#list declarations
+	total_list = []
+	state_list = []
+	confirmed_list = []
+	recovered_list = []
+	death_list = []
+
+	#parse starts
+	txt = getContents()
+	soup = BeautifulSoup(txt, 'html.parser')
+
+	#get total stats first
+	total = soup.find("div", {"class": "site-stats-count"})
+	for length in total.find_all("strong"):
+		total_list.append(length.getText())
+    
+	#get states data
+	states_data  = soup.find("section", {"id": "state-data"})
+	tables = states_data.find_all('tbody')
+	for row in tables[0].findAll("tr"):
+		col = row.findAll("td")
+		if((col[0].getText()).isnumeric()):
+			state_list.append(col[1].getText())
+			confirmed_list.append(int(col[2].getText()))
+			recovered_list.append(int(col[3].getText()))
+			death_list.append(int(col[4].getText()))
+       
+	return total_list, state_list, confirmed_list, recovered_list, death_list
+
+
+
+#resorces.py
+import pandas as pd
+
+total_list, state_list, confirmed_list, recovered_list, death_list = scrape_now()
+
+#state_stats has the data of each state in a single dataframe
+state_stats = pd.DataFrame(list(zip(state_list,confirmed_list,death_list,recovered_list)),
+                            columns=['State','Confirmed','Deaths','Recovered'])
+
+#states with highest confirmed cases are ordered first(resets index after sorting)
+state_stats = state_stats.sort_values(by='Confirmed', ascending=False).reset_index(drop=True)
+
+#top 10 is choosed
+top_state_stats = state_stats.head(10)
+
+#convert the processed dataframe to list to be fed into the graph
+state_list = top_state_stats['State'].values.tolist()
+confirmed_list = top_state_stats['Confirmed'].values.tolist()
+death_list = top_state_stats['Deaths'].values.tolist()
+recovered_list = top_state_stats['Recovered'].values.tolist()
+
+#main.py
 import dash
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_table
 from dash.dependencies import Input, Output
-import resources as res
 
 #User Interface parameters
 colors = {
@@ -64,9 +136,9 @@ page1 = html.Div(className="container",style={'textAlign':'center','backgroundCo
                 id='bar-graph',
                 figure={
                     'data':[
-                        {'x':res.state_list,'y':res.confirmed_list,'type':'bar','name':'Confirmed','marker': {'color':confirmed_color_list}},
-                        {'x':res.state_list,'y':res.death_list,'type':'bar','name':'Deaths','marker':{'color':death_color_list}},
-                        {'x':res.state_list,'y':res.recovered_list,'type':'bar','name':'Recovered','marker':{'color':recovered_color_list}},  
+                        {'x':state_list,'y':confirmed_list,'type':'bar','name':'Confirmed','marker': {'color':confirmed_color_list}},
+                        {'x':state_list,'y':death_list,'type':'bar','name':'Deaths','marker':{'color':death_color_list}},
+                        {'x':state_list,'y':recovered_list,'type':'bar','name':'Recovered','marker':{'color':recovered_color_list}},  
                     ],
                     'layout':{
                         'title': 'States with most COVID-19 reports',
@@ -94,8 +166,8 @@ page1 = html.Div(className="container",style={'textAlign':'center','backgroundCo
             html.P("The below table gives us statewise reports"),
             dash_table.DataTable(
                 id='table',
-                columns=[{"name": i, "id": i} for i in res.state_stats.columns],
-                data=res.state_stats.to_dict('records'),
+                columns=[{"name": i, "id": i} for i in state_stats.columns],
+                data=state_stats.to_dict('records'),
                 style_cell={'textAlign': 'left','font-size':'16px'},
                 style_header={
                     'backgroundColor': 'white',
