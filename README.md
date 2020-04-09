@@ -14,9 +14,13 @@ This web app provides statistical report of India's COVID-19 spread. Working sam
 ## Screenshots
 These are some of the screenshots.
 Below is the screenshot in a desktop environment.
+
+
 ![](https://github.com/rahulhegde99/COVID-19-Statistics/blob/master/Page1PC.png)
 
 Below is the screenshot in a mobile environment.
+
+
 ![](https://github.com/rahulhegde99/COVID-19-Statistics/blob/master/Page1.png)
 
 ## Todo
