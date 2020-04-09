@@ -88,7 +88,12 @@ death_color_list = ['#ff0000','#ff0000','#ff0000','#ff0000','#ff0000','#ff0000',
 recovered_color_list = ['#4bbf73','#4bbf73','#4bbf73','#4bbf73','#4bbf73','#4bbf73','#4bbf73','#4bbf73','#4bbf73','#4bbf73']
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
-app = dash.Dash(external_stylesheets=[dbc.themes.LUX])
+app = dash.Dash(
+    external_stylesheets=[dbc.themes.LUX],
+    meta_tags=[
+        {"name": "viewport", "content": "width=device-width, initial-scale=1"}
+    ]
+)
 app.title = "COVID-19"
 app.layout = html.Div(
     [
@@ -293,8 +298,8 @@ def render_page_content(pathname):
         ]
     )
 
-
 if __name__ == "__main__":
     app.run_server(debug=False)
 
 server = app.server
+
