@@ -1,4 +1,6 @@
 # COVID-19-Statistics
+Visit [here](https://medium.com/analytics-vidhya/tracking-corona-virus-in-india-using-python-7f29e6b0b7e4) to view my detailed published article on this subject.
+
 This web app provides statistical report of India's COVID-19 spread. Working sample in https://covid-19-in-india.herokuapp.com/. 
 
 ## Features
